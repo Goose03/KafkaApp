@@ -1,19 +1,26 @@
 package com.lta.backend.listeners;
 
 import lombok.extern.log4j.Log4j2;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Component;
+import com.service.service1;
+
 
 @Log4j2
 @Component
 public class StrConsumerListener {
+    @Autowired
+    private service1 listnerService1;
 
     @KafkaListener(groupId = "group-1",
             topicPartitions = @TopicPartition(topic = "str-topic",partitions = {"0"})
             ,containerFactory = "validMessageContainerFactory")
     public void listener1(String message){
         log.info("LISTENER1 ::: Recibiendo un mensaje {}",message);
+        listnerService1.listenMessage(message);
     }
 
     @KafkaListener(groupId = "group-1",
