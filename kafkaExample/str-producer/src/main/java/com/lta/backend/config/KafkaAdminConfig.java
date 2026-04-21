@@ -1,5 +1,6 @@
 package com.lta.backend.config;
 import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.common.internals.Topic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,10 @@ public class KafkaAdminConfig {
     public KafkaAdmin.NewTopics topics(){
         return new KafkaAdmin.NewTopics(
                 TopicBuilder.name("str-topic").partitions(2).replicas(1).build(),
-                TopicBuilder.name("test").partitions(2).replicas(1).build()
+                TopicBuilder.name("test").partitions(2).replicas(1).build(),
+                TopicBuilder.name("Gestion-pacientes").partitions(2).replicas(1).build(),
+                TopicBuilder.name("Gestion-citas").partitions(2).replicas(1).build(),
+                TopicBuilder.name("Visualización").partitions(2).replicas(1).build()
         );
     }
 }

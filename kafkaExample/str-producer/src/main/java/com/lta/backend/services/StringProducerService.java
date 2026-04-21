@@ -17,6 +17,15 @@ public class StringProducerService {
         if(message.contains("test")){
             topic = "test";
         }
+        else if(message.contains("pacientes")){
+            topic = "Gestion-pacientes";
+        }
+        else if(message.contains("citas")){
+            topic = "Gestion-citas";
+        }
+        else if(message.contains("visualización")){
+            topic = "Visualización";
+        }
         else{
             topic = "str-topic";
         }
