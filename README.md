@@ -65,29 +65,6 @@ Partition: 1  Offset: 0  →  "Consultar historial médico del paciente ID: 001"
 
 Esto confirma que el Producer enruta cada mensaje a la partición correcta según el tipo de operación, y el Consumer los recibe y los expone al Frontend de Visualización en tiempo real.
 
----
-
-## 🗂️ Estructura del proyecto
-
-```
-KafkaApp/
-├── kafkaExample/
-│   ├── docker-compose.yml      ← Kafka + Zookeeper + Kafdrop
-│   ├── str-producer/           ← Backend Producer  (puerto 8000)
-│   └── str-consumer/           ← Backend Consumer  (puerto 8100)
-├── frontProducerKafka/         ← Frontend Doctores (puerto 5173)
-└── frontConsumerKafka/         ← Frontend Visualización (puerto 5174)
-```
-
----
-
-## ⚙️ Requisitos previos
-
-- **Docker Desktop**
-- **Java 17+**
-- **Node.js**
-
----
 
 ## 🚀 Cómo correr el proyecto
 
