@@ -1,42 +1,28 @@
 package com.lta.backend.services;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
-@Slf4j
 public class StringProducerService {
 
     @Autowired
-    private KafkaTemplate<String,String> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
-    public void sendMessage(String message){
-        String topic;
-        if(message.contains("test")){
-            topic = "test";
-        }
-        else if(message.contains("pacientes")){
-            topic = "Gestion-pacientes";
-        }
-        else if(message.contains("citas")){
-            topic = "Gestion-citas";
-        }
-        else if(message.contains("visualización")){
-            topic = "Visualización";
-        }
-        else{
-            topic = "str-topic";
-        }
-
-
-        kafkaTemplate.send(topic, 1, null, message).whenComplete((result,ex) -> {
-           if(ex != null){
-               log.error("Error, al enviar el mensaje: {}",ex.getMessage());
-           }
-           log.info("Mensaje enviado con éxito: {}",result.getProducerRecord().value());
-           log.info("Particion {}, Offset {}", result.getRecordMetadata().partition(),result.getRecordMetadata().offset());
-        });
+    public void sendMessage(String topic, int partition, String message) {
+        kafkaTemplate.send(topic, partition, null, message)
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.error("Error al enviar mensaje a '{}' partición {}: {}", topic, partition, ex.getMessage());
+                    } else {
+                        log.info("✅ Enviado a tópico '{}' partición {} offset {}",
+                                topic,
+                                result.getRecordMetadata().partition(),
+                                result.getRecordMetadata().offset());
+                    }
+                });
     }
 }

@@ -1,6 +1,12 @@
 server:
   port: 8100
+
 spring:
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
+      group-id: hospital-consumer-group
+      auto-offset-reset: earliest
+      # Evita que el consumer cree tópicos automáticamente
+      properties:
+        allow.auto.create.topics: false

@@ -1,121 +1,83 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from "react";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+const BASE = "http://localhost:8100/consumer";
+const TOPICOS = ["gestion-pacientes", "gestion-citas", "visualizacion-estado"];
+
+const ETIQUETAS = {
+  "gestion-pacientes": "👥 Gestión de Pacientes",
+  "gestion-citas": "📅 Gestión de Citas",
+  "visualizacion-estado": "👁️ Visualización / Estado",
+};
+
+export default function App() {
+  const [mensajes, setMensajes] = useState([]);
+  const [topicoActivo, setTopicoActivo] = useState("todos");
+  const [idBusqueda, setIdBusqueda] = useState("");
+
+  // Consultar endpoint del consumer cada 2 segundos
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const url = topicoActivo === "todos"
+          ? `${BASE}/mensajes`
+          : `${BASE}/mensajes/${topicoActivo}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setMensajes(data);
+      } catch (e) {
+        console.error("Error consultando consumer:", e);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [topicoActivo]);
+
+  const mensajesFiltrados = idBusqueda
+    ? mensajes.filter(m => m.contenido?.includes(idBusqueda))
+    : mensajes;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <header className="app-header">
+        <h1>🖥️ Sistema de Visualización</h1>
+        <p>Consulta de citas y estado de pacientes en tiempo real</p>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      <div className="controles">
+        <div className="tabs">
+          <button className={topicoActivo === "todos" ? "tab active" : "tab"} onClick={() => setTopicoActivo("todos")}>
+            Todos
+          </button>
+          {TOPICOS.map(t => (
+            <button key={t} className={topicoActivo === t ? "tab active" : "tab"} onClick={() => setTopicoActivo(t)}>
+              {ETIQUETAS[t]}
+            </button>
+          ))}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <input
+          className="buscador"
+          placeholder="🔍 Buscar por ID de paciente..."
+          value={idBusqueda}
+          onChange={e => setIdBusqueda(e.target.value)}
+        />
+      </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="mensajes-lista">
+        {mensajesFiltrados.length === 0 ? (
+          <p className="vacio">No hay mensajes aún. Los mensajes aparecerán aquí cuando el consumer los reciba de Kafka.</p>
+        ) : (
+          mensajesFiltrados.map((m, i) => (
+            <div key={i} className={`mensaje-card topico-${m.topico}`}>
+              <div className="mensaje-header">
+                <span className="badge">{ETIQUETAS[m.topico] || m.topico}</span>
+                <span className="badge-particion">Partición {m.particion} — {m.tipo}</span>
+                <span className="hora">{m.hora}</span>
+              </div>
+              <p className="mensaje-contenido">{m.contenido}</p>
+            </div>
+          ))
+        )}
+      </main>
+    </div>
+  );
 }
-
-export default App

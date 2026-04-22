@@ -1,6 +1,6 @@
 package com.lta.backend.config;
+
 import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.common.internals.Topic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -17,20 +17,24 @@ public class KafkaAdminConfig {
     private KafkaProperties kafkaProperties;
 
     @Bean
-    public KafkaAdmin kafkaAdmin(){
-        var configs = new HashMap<String,Object>();
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,kafkaProperties.getBootstrapServers());
+    public KafkaAdmin kafkaAdmin() {
+        var configs = new HashMap<String, Object>();
+        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         return new KafkaAdmin(configs);
     }
 
+    // Tópico 1: Gestión de pacientes — 3 particiones
+    // Partición 0: Registro, Partición 1: Actualización, Partición 2: Eliminación
+    // Tópico 2: Gestión de citas — 3 particiones
+    // Partición 0: Creación, Partición 1: Cancelación, Partición 2: Reprogramación
+    // Tópico 3: Visualización/estado — 2 particiones
+    // Partición 0: Consulta de estado, Partición 1: Historial médico
     @Bean
-    public KafkaAdmin.NewTopics topics(){
+    public KafkaAdmin.NewTopics topics() {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name("str-topic").partitions(2).replicas(1).build(),
-                TopicBuilder.name("test").partitions(2).replicas(1).build(),
-                TopicBuilder.name("Gestion-pacientes").partitions(2).replicas(1).build(),
-                TopicBuilder.name("Gestion-citas").partitions(2).replicas(1).build(),
-                TopicBuilder.name("Visualización").partitions(2).replicas(1).build()
+                TopicBuilder.name("gestion-pacientes").partitions(3).replicas(1).build(),
+                TopicBuilder.name("gestion-citas").partitions(3).replicas(1).build(),
+                TopicBuilder.name("visualizacion-estado").partitions(2).replicas(1).build()
         );
     }
 }
