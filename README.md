@@ -2,6 +2,69 @@
 
 Sistema distribuido de gestión hospitalaria que utiliza **Apache Kafka** como broker de mensajes para comunicar sus componentes de forma asíncrona y desacoplada.
 
+<img width="1513" height="784" alt="3d366513-0b35-4975-9638-6d189468a7b4" src="https://github.com/user-attachments/assets/8a0ce307-f0b0-4da2-a946-d7a4564d3287" />
+
+## ✅ Demostración — El sistema en funcionamiento
+
+### Sistema para Doctores (`localhost:5173`)
+Interfaz con 3 paneles activos. El doctor puede registrar pacientes, gestionar citas y consultar estados. Cada botón envía el mensaje al tópico y partición correcta en Kafka.
+
+> Ejemplo real: Se registró a **JUAN (ID: 001)** y **PABLO (ID: 002)**, se eliminó a PABLO, y se actualizó su información — cada operación fue a una partición distinta del tópico `gestion-pacientes`.
+<img width="1512" height="790" alt="58af827d-35f7-4bbc-84a6-7203706de72a" src="https://github.com/user-attachments/assets/df279b74-adcc-4c83-b9bf-433a36000d3a" />
+<img width="581" height="365" alt="b3a30732-a872-41ae-a932-b4b77a119f3f" src="https://github.com/user-attachments/assets/01cfd44d-8fd4-4aa5-930f-b353f38e600b" />
+
+
+### Sistema de Visualización (`localhost:5174`)
+<img width="1512" height="791" alt="306939ab-75fe-41b0-9c1b-a32b7ba4098b" src="https://github.com/user-attachments/assets/909cebd2-aeac-475f-a1e1-a2d120eb469d" />
+<img width="604" height="297" alt="image" src="https://github.com/user-attachments/assets/bcd9c790-ea12-445d-9ef0-7331f3d0aba0" />
+
+**Tópico: Gestión de Pacientes** — los 4 eventos llegan correctamente a sus particiones:
+```
+Gestión de Pacientes  |  Partición 0 — Registro    →  "Registrar paciente: JUAN, ID: 001"
+Gestión de Pacientes  |  Partición 0 — Registro    →  "Registrar paciente: PABLO, ID: 002"
+Gestión de Pacientes  |  Partición 2 — Eliminación →  "Eliminar paciente ID: 002"
+Gestión de Pacientes  |  Partición 1 — Actualización → "Actualizar paciente ID: 002, nombre: PABLO GIL"
+```
+
+**Tópico: Gestión de Citas** — creación, reprogramación y cancelación en sus particiones:
+```
+Gestión de Citas  |  Partición 0 — Creación       →  "Crear cita para paciente ID: 001, fecha: 2026-04-15"
+Gestión de Citas  |  Partición 0 — Creación       →  "Crear cita para paciente ID: 002, fecha: 2026-04-17"
+Gestión de Citas  |  Partición 2 — Reprogramación →  "Reprogramar cita de paciente ID: 002, nueva fecha: 2026-04-17"
+Gestión de Citas  |  Partición 1 — Cancelación    →  "Cancelar cita de paciente ID: 001"
+```
+
+**Tópico: Visualización / Estado** — consultas de estado e historial médico:
+```
+Visualización / Estado  |  Partición 0 — Consulta Estado  →  "Consultar estado del paciente ID: 001"
+Visualización / Estado  |  Partición 1 — Historial Médico →  "Consultar historial médico del paciente ID: 001"
+```
+
+---
+
+### Buscador funcional
+Al escribir `001` en el buscador, el sistema filtra y muestra únicamente los mensajes relacionados con ese paciente a través de los 3 tópicos.
+
+---
+
+### Verificación en Kafdrop (`localhost:19000`)
+Los mensajes se pueden verificar directamente en Kafka. Kafdrop muestra cada mensaje con su **partición**, **offset** y **timestamp** exactos:
+
+**Tópico `gestion-pacientes`:**
+```
+Partition: 0  Offset: 0  →  "Registrar paciente: JUAN, ID: 001"
+Partition: 0  Offset: 1  →  "Registrar paciente: PABLO, ID: 002"
+Partition: 2  Offset: 0  →  "Eliminar paciente ID: 002"
+Partition: 1  Offset: 0  →  "Actualizar paciente ID: 002, nombre: PABLO GIL"
+```
+
+**Tópico `visualizacion-estado`:**
+```
+Partition: 1  Offset: 0  →  "Consultar historial médico del paciente ID: 001"
+```
+
+Esto confirma que el Producer enruta cada mensaje a la partición correcta según el tipo de operación, y el Consumer los recibe y los expone al Frontend de Visualización en tiempo real.
+
 ---
 
 ## 🗂️ Estructura del proyecto
