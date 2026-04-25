@@ -1,3 +1,7 @@
+#  Diagrama
+<img width="1104" height="821" alt="DIAGRAMAPUERTOS drawio" src="https://github.com/user-attachments/assets/7f932662-779a-462c-912f-bca0075b4dfa" />
+
+
 # 🏥 KafkaApp — Sistema Hospitalario con Apache Kafka
 
 Sistema distribuido de gestión hospitalaria que utiliza **Apache Kafka** como broker de mensajes para comunicar sus componentes de forma asíncrona y desacoplada.
